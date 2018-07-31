@@ -1,5 +1,5 @@
 from config_reader import ConfigReader
-from database_helper import DatabaseHelper
+from DataTransformer import DataTransformer
 from json import loads
 from flask import Flask, jsonify, request
 from sqlalchemy import create_engine
@@ -14,7 +14,7 @@ engine = create_engine('postgresql://{0}:{1}@{2}:{3}/{4}'.format(user, password,
 Session = sessionmaker(bind=engine)
 session = Session()
 
-db = DatabaseHelper(host, dbname, user, password)
+db = DataTransformer()
 
 
 @app.route('/countries', methods=['GET'])
@@ -57,7 +57,7 @@ def update_country():
     id = data['id']
     name = data['name']
     continent = data['continent']
-    country_row = session.query(Country).filter_by(id=id).first()
+    country_row = session.query(Country).filter_by(id = id).first()
     dic = {}
     if country_row is None:
         dic['message'] = 'Country Not Found'

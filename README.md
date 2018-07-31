@@ -24,7 +24,7 @@ POST method expects json like this:
 PUT method expects json like this:
 
 {
-    "id": "1",
+    "id": 3,
 	"name": "USA",
     "continent":"North America"
 }
