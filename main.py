@@ -51,13 +51,12 @@ def add_country():
     return jsonify(dic)
 
 
-@app.route('/countries', methods=['PUT'])
-def update_country():
+@app.route('/countries/<id>', methods=['PUT'])
+def update_country(id):
     data = loads(request.data)
-    id = data['id']
     name = data['name']
     continent = data['continent']
-    country_row = session.query(Country).filter_by(id = id).first()
+    country_row = session.query(Country).filter_by(id=id).first()
     dic = {}
     if country_row is None:
         dic['message'] = 'Country Not Found'
