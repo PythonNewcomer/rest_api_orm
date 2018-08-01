@@ -15,15 +15,18 @@ PASSWORD = %your_password%
 POST method expects json like this:
 
 {
-    "name": "USA",
-    "continent":"North America"
+    "title": "The Godfather",
+    "year": 1972,
+	"country": "USA"
 }
 
 ###########################################################
 
-PUT method expects json like this:
+PUT method must be sent to an address like this "movies/7" (7 is movie's ID)
+It expects json like this:
 
 {
-	"name": "USA",
-    "continent":"North America"
+	"title": "The Godfather II",
+    "year": 1974,
+	"country": "USA"
 }

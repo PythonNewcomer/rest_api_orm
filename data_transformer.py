@@ -8,8 +8,9 @@ class DataTransformer(object):
         for row in result:
             dic = {}
             dic['id'] = row[0]
-            dic['country'] = row[1]
-            dic['continent'] = row[2]
+            dic['title'] = row[1]
+            dic['year'] = row[2]
+            dic['country_id'] = row[3]
             list.append(dic)
         return dumps(list)
 
@@ -19,8 +20,9 @@ class DataTransformer(object):
         try:
             row = result[0]  # result returns list even if it consists of one tuple only
             dic['id'] = row[0]
-            dic['country'] = row[1]
-            dic['continent'] = row[2]
+            dic['title'] = row[1]
+            dic['year'] = row[2]
+            dic['country_id'] = row[3]
         except IndexError:
-            dic['message'] = "Country Not Found"
+            dic['message'] = "Movie Not Found"
         return dumps(dic)

@@ -4,10 +4,10 @@ from json import loads
 from flask import Flask, jsonify, request
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from country import Country
+from movie_tables import Movie, Country
 
 
-app = Flask('CountriesREST')
+app = Flask('MoviesREST')
 cr = ConfigReader()
 host, port, dbname, user, password = cr.get_database_config()
 engine = create_engine('postgresql://{0}:{1}@{2}:{3}/{4}'.format(user, password, host, port, dbname))
@@ -17,54 +17,57 @@ session = Session()
 db = DataTransformer()
 
 
-@app.route('/countries', methods=['GET'])
-def get_countries():
-    result = session.query(Country.id, Country.name, Country.continent).all()
+@app.route('/movies', methods=['GET'])
+def get_movie():
+    result = session.query(Movie.id, Movie.title, Movie.year, Movie.country_id).all()
     return db.transform_dataset_into_json(result)
 
 
-@app.route('/countries/<id>', methods=['GET'])
-def get_country(id):
-    result = session.query(Country.id, Country.name, Country.continent).filter(Country.id == id)
+@app.route('/movies/<id>', methods=['GET'])
+def get_movies(id):
+    result = session.query(Movie.id, Movie.title, Movie.year, Movie.country_id).filter(Movie.id == id)
     return db.transform_row_into_json(result)
 
 
-@app.route('/countries/<id>', methods=['DELETE'])
-def delete_country(id):
-    session.query(Country).filter(Country.id == id).delete()
+@app.route('/movies/<id>', methods=['DELETE'])
+def delete_movie(id):
+    session.query(Movie).filter(Movie.id == id).delete()
     session.commit()
-    message = 'Country {} was deleted!'.format(id)
+    message = 'Movie {} was deleted!'.format(id)
     dic = {'message': message}
     return jsonify(dic)
 
 
-@app.route('/countries', methods=['POST'])
-def add_country():
+@app.route('/movies', methods=['POST'])
+def add_movie():
     data = loads(request.data)
-    name = data['name']
-    continent = data['continent']
-    country_row = Country(name=name, continent=continent)
-    session.add(country_row)
+    title = data['title']
+    year = data['year']
+    country = data['country']
+    movie_row = Movie(title=title, year=year, country=session.query(Country).filter(Country.name == country).first())
+    session.add(movie_row)
     session.commit()
-    message = 'Country {} was added!'.format(name)
+    message = 'Movie {} was added!'.format(title)
     dic = {'message': message}
     return jsonify(dic)
 
 
-@app.route('/countries/<id>', methods=['PUT'])
-def update_country(id):
+@app.route('/movies/<id>', methods=['PUT'])
+def update_movie(id):
     data = loads(request.data)
-    name = data['name']
-    continent = data['continent']
-    country_row = session.query(Country).filter_by(id=id).first()
+    title = data['title']
+    year = data['year']
+    country = data['country']
+    movie_row = session.query(Movie).filter_by(id=id).first()
     dic = {}
-    if country_row is None:
-        dic['message'] = 'Country Not Found'
+    if movie_row is None:
+        dic['message'] = 'Movie Not Found'
     else:
-        country_row.name = name
-        country_row.continent = continent
+        movie_row.title = title
+        movie_row.year = year
+        movie_row.country = session.query(Country).filter(Country.name == country).first()
         session.commit()
-        dic['message'] = 'Country Was Updated'
+        dic['message'] = 'Movie Was Updated'
     return jsonify(dic)
 
 
