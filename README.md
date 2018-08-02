@@ -17,7 +17,8 @@ POST method expects json like this:
 {
     "title": "The Godfather",
     "year": 1972,
-	"country": "USA"
+	"country": "USA",
+	"genre": "drama"
 }
 
 ###########################################################

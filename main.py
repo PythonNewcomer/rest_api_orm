@@ -46,7 +46,9 @@ def add_movie():
     title = data['title']
     year = data['year']
     country = data['country']
+    genre = data['genre']
     movie_row = Movie(title=title, year=year, country=session.query(Country).filter(Country.name == country).first())
+    movie_row.genre.append(session.query(Genre).filter(Genre.name == genre).first())
     session.add(movie_row)
     session.commit()
     message = 'Movie {} was added!'.format(title)
