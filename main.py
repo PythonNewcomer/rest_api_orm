@@ -4,7 +4,7 @@ from json import loads
 from flask import Flask, jsonify, request
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from movie_tables import Movie, Country
+from movie_tables import Movie, Country, Genre, movies_genres_association
 
 
 app = Flask('MoviesREST')
@@ -19,13 +19,15 @@ db = DataTransformer()
 
 @app.route('/movies', methods=['GET'])
 def get_movie():
-    result = session.query(Movie.id, Movie.title, Movie.year, Movie.country_id).all()
+    result = session.query(Movie.id, Movie.title, Movie.year, Country.name, Genre.name).join(Country)\
+        .join(movies_genres_association).join(Genre).all()
     return db.transform_dataset_into_json(result)
 
 
 @app.route('/movies/<id>', methods=['GET'])
 def get_movies(id):
-    result = session.query(Movie.id, Movie.title, Movie.year, Movie.country_id).filter(Movie.id == id)
+    result = session.query(Movie.id, Movie.title, Movie.year, Country.name, Genre.name).join(Country)\
+        .join(movies_genres_association).join(Genre).filter(Movie.id == id).all()
     return db.transform_row_into_json(result)
 
 

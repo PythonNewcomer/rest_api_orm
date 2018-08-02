@@ -10,7 +10,8 @@ class DataTransformer(object):
             dic['id'] = row[0]
             dic['title'] = row[1]
             dic['year'] = row[2]
-            dic['country_id'] = row[3]
+            dic['country'] = row[3]
+            dic['genre'] = row[4]
             list.append(dic)
         return dumps(list)
 
@@ -22,7 +23,8 @@ class DataTransformer(object):
             dic['id'] = row[0]
             dic['title'] = row[1]
             dic['year'] = row[2]
-            dic['country_id'] = row[3]
+            dic['country'] = row[3]
+            dic['genre'] = row[4]
         except IndexError:
             dic['message'] = "Movie Not Found"
         return dumps(dic)
