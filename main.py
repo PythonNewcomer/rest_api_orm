@@ -7,7 +7,11 @@ from json import loads
 from flask import Flask, jsonify, request
 from flask_httpauth import HTTPBasicAuth
 from auth_table import User
+from sqlalchemy.ext.declarative import declarative_base
+from hashlib import md5
 
+
+Base = declarative_base()
 
 app = Flask('MoviesREST')
 auth = HTTPBasicAuth()
@@ -22,8 +26,9 @@ db = DataTransformer()
 
 @auth.verify_password
 def verify_password(username, password):
-    stored_password = session.query(User.password).filter_by(username=username).first()[0]
-    if stored_password == password:
+    hash_password = md5(password.encode('utf-8')).hexdigest()
+    stored_password = session.query(User.password_hash).filter_by(username=username).first()[0]
+    if hash_password == stored_password:
         return True
     else:
         return False
