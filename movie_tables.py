@@ -1,9 +1,6 @@
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, String, Integer, ForeignKey, Table
 from sqlalchemy.orm import relationship
-
-Base = declarative_base()
-
+from base import Base
 
 movies_genres_association = Table(
     'movies_genres', Base.metadata,

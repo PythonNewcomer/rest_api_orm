@@ -7,11 +7,9 @@ from json import loads
 from flask import Flask, jsonify, request
 from flask_httpauth import HTTPBasicAuth
 from auth_table import User
-from sqlalchemy.ext.declarative import declarative_base
 from hashlib import md5
+from base import Base
 
-
-Base = declarative_base()
 
 app = Flask('MoviesREST')
 auth = HTTPBasicAuth()
@@ -20,7 +18,7 @@ host, port, dbname, user, password = cr.get_database_config()
 engine = create_engine('postgresql://{0}:{1}@{2}:{3}/{4}'.format(user, password, host, port, dbname))
 Session = sessionmaker(bind=engine)
 session = Session()
-
+Base.metadata.create_all(engine, checkfirst=True)
 db = DataTransformer()
 
 
