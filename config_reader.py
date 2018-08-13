@@ -13,3 +13,6 @@ class ConfigReader(object):
         user = self.config['DB']['USER']
         password = self.config['DB']['PASSWORD']
         return host, port, dbname, user, password
+
+    def get_secret_key(self):
+        return self.config['APP']['SECRET_KEY']

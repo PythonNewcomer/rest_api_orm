@@ -4,17 +4,20 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from movie_tables import Movie, Country, Genre, movies_genres_association
 from json import loads
-from flask import Flask, jsonify, request
-from flask_httpauth import HTTPBasicAuth
+from flask import Flask, jsonify, request, g  # 
+from flask_httpauth import HTTPBasicAuth, HTTPTokenAuth
 from auth_table import User
 from hashlib import md5
+from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
 from base import Base
 
 
 app = Flask('MoviesREST')
-auth = HTTPBasicAuth()
+basic_auth = HTTPBasicAuth()
+token_auth = HTTPTokenAuth()
 cr = ConfigReader()
 host, port, dbname, user, password = cr.get_database_config()
+secret_key = cr.get_secret_key()
 engine = create_engine('postgresql://{0}:{1}@{2}:{3}/{4}'.format(user, password, host, port, dbname))
 Session = sessionmaker(bind=engine)
 session = Session()
@@ -22,18 +25,46 @@ Base.metadata.create_all(engine, checkfirst=True)
 db = DataTransformer()
 
 
-@auth.verify_password
-def verify_password(username, password):
-    hash_password = md5(password.encode('utf-8')).hexdigest()
-    stored_password = session.query(User.password_hash).filter_by(username=username).first()[0]
-    if hash_password == stored_password:
+def generate_auth_token(expiration=600):
+    s = Serializer(secret_key, expires_in=expiration)
+    return s.dumps({'user': g.username})
+
+
+@token_auth.verify_token
+def verify_auth_token(token):
+    s = Serializer(secret_key)
+    try:
+        data = s.loads(token)
+    except SignatureExpired:
+        return False
+    except BadSignature:
+        return False
+    if session.query(User.username).filter_by(username=data['user']).first()[0]:
         return True
     else:
         return False
 
 
+@basic_auth.verify_password
+def verify_password(username, password):
+    hash_password = md5(password.encode('utf-8')).hexdigest()
+    stored_password = session.query(User.password_hash).filter_by(username=username).first()[0]
+    if hash_password == stored_password:
+        g.username = username
+        return True
+    else:
+        return False
+
+
+@app.route('/token')
+@basic_auth.login_required
+def get_auth_token():
+    token = generate_auth_token()
+    return jsonify({'token': token.decode('ascii')})
+
+
 @app.route('/movies', methods=['GET'])
-@auth.login_required
+@token_auth.login_required
 def get_movie():
     result = session.query(Movie.id, Movie.title, Movie.year, Country.name, Genre.name) \
         .join(Country, isouter=True) \
@@ -44,7 +75,7 @@ def get_movie():
 
 
 @app.route('/movies/<id>', methods=['GET'])
-@auth.login_required
+@token_auth.login_required
 def get_movies(id):
     result = session.query(Movie.id, Movie.title, Movie.year, Country.name, Genre.name) \
         .join(Country, isouter=True) \
@@ -56,7 +87,7 @@ def get_movies(id):
 
 
 @app.route('/movies/<id>', methods=['DELETE'])
-@auth.login_required
+@token_auth.login_required
 def delete_movie(id):
     session.query(Movie)\
         .filter(Movie.id == id)\
@@ -68,7 +99,7 @@ def delete_movie(id):
 
 
 @app.route('/movies', methods=['POST'])
-@auth.login_required
+@token_auth.login_required
 def add_movie():
     data = loads(request.data)
     title = data['title']
@@ -88,7 +119,7 @@ def add_movie():
 
 
 @app.route('/movies/<id>', methods=['PUT'])
-@auth.login_required
+@token_auth.login_required
 def update_movie(id):
     data = loads(request.data)
     title = data['title']
